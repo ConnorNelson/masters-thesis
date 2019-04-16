@@ -42,35 +42,70 @@
                                         %   changes
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Custom Stuff
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{minted}
+\usepackage{mdframed}
+
+\graphicspath{ {./images/} }
+
+\newcommand*{\image}[3]{
+  \begin{figure}[H]
+    \begin{center}
+      \includegraphics[width=0.7\maxwidth{\textwidth}]{#1}
+      \caption{#2}
+    \end{center}
+  \end{figure}}
+
+\newcommand*{\summaryi}[1]{%
+  \textcolor{gray}{\{}\textcolor{blue}{#1}\textcolor{gray}{\}}}
+
+\newcommand*{\summaryii}[3]{%
+  \textcolor{gray}{\{}\textcolor{blue}{#1}\textcolor{gray}{, }\textcolor{blue}{#2}\textcolor{gray}{\}}}
+
+\newcommand*{\summaryiii}[3]{%
+  \textcolor{gray}{\{}\textcolor{blue}{#1}\textcolor{gray}{, }\textcolor{blue}{#2}\textcolor{gray}{, }\textcolor{blue}{#3}\textcolor{gray}{\}}}
+
+\newenvironment{data}{
+  \begin{center}
+    \begin{mdframed}[backgroundcolor=lightgray]
+      \begin{tiny}
+        \ttfamily
+        \obeyspaces
+        \obeylines}{
+      \end{tiny}
+    \end{mdframed}
+  \end{center}}
+
+\newminted{python}{frame=lines,framesep=2mm,baselinestretch=1.2,bgcolor=lightgray,fontsize=\footnotesize,escapeinside=~~,linenos}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Title page, input
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \listadd{\titlelines}%
-  {First Line of the Title}             %<Enter the title of the dissertation
+  {IRE}
 \listadd{\titlelines}%
-  {Second Line of the Title}            % If you want to
-                                        %   split the title across lines,
-                                        %   use another \listadd command for the
-                                        %   second line
-\newcommand*\Author{Your Name}          %<Enter your name; must match official transcript
+  {A Framework For Inductive Reverse Engineering}
+\newcommand*\Author{Connor Nelson}
 \newcommand*{\documentname}%
-  {Dissertation}                        %<Enter the type of document (capitalized)
+  {Thesis}
 \newcommand*{\degreename}
-  {Doctor of Philosophy}                %<Enter the type of degree (capitalized)
-\newcommand*\defdate{Month Year}        %<Give month (written out fully) and year of
-                                        %   the oral defense
-\listadd{\committeechair}{Chair Name}   %<Enter committee chair name; use \listadd for
-%\listadd{\committeechair}{Another name}%   for additional names
-\newcommand*{\chairlabel}{Chair}        %<If you have co-chairs, replace this text with
-                                        %   'Co-Chair'
-\listadd{\committeemember}{Member Name} %<Enter committee member names; use \listadd for
-\listadd{\committeemember}{Member Name} %   additional names
-\newcommand*{\gradmonth}{Month}         %<Enter the graduation date; month can only be:
-                                        %  May, August, or December
-\newcommand*{\gradyear}{Year}           %<Enter the graduation year, e.g. 2014
+  {Master of Science}
+\newcommand*\defdate{April 2019}
+\listadd{\committeechair}{Adam Doup\'e}
+\newcommand*{\chairlabel}{Chair}
+\listadd{\committeemember}{Yan Shoshitaishvili}
+\listadd{\committeemember}{Ruoyu Wang}
+\newcommand*{\gradmonth}{May}
+\newcommand*{\gradyear}{2019}
 
-\listadd{\keywords}{keyword 1}          %<Enter keywords; use \listadd for
-\listadd{\keywords}{keyword 2}          %   additional names (up to 6)
-\newcommand*{\graddate}{\gradmonth%     % Compose full graduation date
+\listadd{\keywords}{inductive reverse engineering}
+\listadd{\keywords}{blackbox}
+\listadd{\keywords}{program synthesis}
+\listadd{\keywords}{program analysis}
+\newcommand*{\graddate}{\gradmonth%
   \space\gradyear}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -133,10 +168,8 @@
   \defaultfontfeatures{Mapping=tex-text,% Font spec setting
     Scale=MatchLowercase}
   \newcommand*{\euro}{€}
-  \setmainfont{Garamond}                %<Set the main font; make sure the font is correct
-                                        %   for the font size (See ASU Style Guide)
-%  \setmathfont(Digits,Latin,Greek)%     %~Uncomment two lines to set a font for math%
-%    {MATHFONT}
+  \setmainfont{Garamond}
+  \setmonofont{Source Code Pro}
 \fi
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -406,6 +439,11 @@
 \renewcommand{\cftfigureaftersnumb}%    % Put table captions in List of Figures in title
   {\titlecap}%                          %   case
 
+\newcommand{\macrocapwrap}[1]{%         % Use this macro to place other macros inside
+  {\bgroup\bgroup{{#1}}\egroup\egroup}% %   captions, e.g., '\macrocapwrap{\ref{figure1}}'
+}%                                      % Note: Necessary due to the 'titlecaps' package
+                                        %   which modifies contents of captions
+
 \renewcommand*{\cftpartpagefont}%       % Use normal font for all page numbers
   {\normalfont}
 \renewcommand*{\cftchapterpagefont}%
@@ -645,7 +683,7 @@
 \counterwithout*{footnote}{chapter}     % Make footnote numbering continuous throughout
 
 \providetoggle{useendnotes}
-\settoggle{useendnotes}{true}           %<Set to 'true' if you want to use endnotes
+\settoggle{useendnotes}{false}          %<Set to 'true' if you want to use endnotes
 \iftoggle{useendnotes}{%                % Use the command \pagenote to create endnotes
                                         %   in the running text. They will be collected
                                         %   and printed in a 'Notes' section at the end
@@ -664,7 +702,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bibliography
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newcommand{\bibfilename}{sample_library}%<Enter the name of the *.bib file containing the
+\newcommand{\bibfilename}{library}%<Enter the name of the *.bib file containing the
                                         %   reference information for sources cited in
                                         %   the text. God help you if you're doing
                                         %   citations manually.
@@ -680,11 +718,9 @@
 \iftoggle{usebiblatex}{%                % Settings for citation package
 %                                       % Settings for 'biblatex' or a version of
 %                                       %   'biblatex'
-  \usepackage[authordate,%
-              backend=biber,%           % Recommend to use 'biber' instead of 'bibtex'
-              doi=only,%                % Avoid printing URLs
-              isbn=false]%              % Don't print ISBN numbers
-              {biblatex-chicago}        %~Other possibilities include: 'biblatex',
+  \usepackage[style=ieee,
+              backend=biber]%           % Recommend to use 'biber' instead of 'bibtex'
+              {biblatex}                %~ Possibilities include: 'biblatex',
                                         %   'biblatex-apa', and 'biblatex-mla'
   \bibliography{\bibfilename}
   \setlength{\bibitemsep}%              % Set vertical distance between
@@ -711,8 +747,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \captiondelim{. }                       %~Use period (.) after caption number instead of
                                         %   colon (:). Change according to style guide.
-\captionstyle[\raggedright]%            % Set justifcation for [one line captions]
-  {\raggedright}                        %   and {multiple line captions}
+%% \captionstyle[\raggedright]%         % Set justifcation for [one line captions]
+%%   {\raggedright}                     %   and {multiple line captions}
 \setlength{\belowcaptionskip}{0pt}      % Bring caption down closer to figure/table
 \makeatletter                           % Consecutive numbering throughout
   \counterwithout{figure}{chapter}      %   (including back matter)
@@ -721,11 +757,6 @@
   \renewcommand\@memmain@floats{}
   \renewcommand\@memback@floats{}
 \makeatletter
-
-\newcommand{\macrocapwrap}[1]{%         % Use this macro to place other macros inside
-  {\bgroup\bgroup{{#1}}\egroup\egroup}% %   captions, e.g., '\macrocapwrap{\ref{figure1}}'
-}%                                      % Note: Necessary due to the 'titlecaps' package
-                                        %   which modifies contents of captions
 
 %%% Tables %%%
 %
@@ -800,7 +831,7 @@
 \edef\theonelinetitle%
   {\onelinetitle}
 
-\renewcommand*{\do}[1]{{#1}\ }%          % Build keyword string to output to pdf document
+\renewcommand*{\do}[1]{{#1}\ }%         % Build keyword string to output to pdf document
 \newcommand*{\pdfkeywordsstring}{%
   \dolistloop{\keywords}%
 }
@@ -876,7 +907,7 @@
   \titlepagesetup
   ~\\ \vfill
     \begin{center}
-      \copyright\gradyear\space%
+      \copyright\space\gradyear\space%
       \Author\\%
       All Rights Reserved%
     \end{center}%
@@ -888,7 +919,7 @@
 % Sample settings
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \providetoggle{sample}                  % True = demonstration of template
-\settoggle{sample}{true}
+\settoggle{sample}{false}
 \iftoggle{sample}{%
   \newcounter{tablecounter}
   \setcounter{tablecounter}{1}
@@ -926,7 +957,7 @@
 \frontmatter
 
 \chapter*{Abstract}                     % Abstract is required
-\input{sample_abstract}                 %<Enter the name of the .tex file containing your
+\input{abstract}                        %<Enter the name of the .tex file containing your
                                         %   your abstract or omit this line and type in
                                         %   your abstract here.
 
@@ -934,14 +965,14 @@
 %\clearpage                             %~If you don't wish to display the heading
                                         %   'Dedication', comment out the previous line
                                         %   and use this one instead.
-\input{sample_dedication}               %<Enter the name of the .tex file containing your
+\input{dedication}                      %<Enter the name of the .tex file containing your
                                         %   your dedication or omit this line and type in
                                         %   your dedication here.
 
-\chapter*{Acknowledgments}              %~Acknowledgments are optional
-\input{sample_acknowledgments}          %<Enter the name of the .tex file containing your
-                                        %   acknowledgments or omit this line and type in
-                                        %   your acknowledgments here.
+%% \chapter*{Acknowledgments}              %~Acknowledgments are optional
+%% \input{acknowledgments}                 %<Enter the name of the .tex file containing your
+%%                                         %   acknowledgments or omit this line and type in
+%%                                         %   your acknowledgments here.
 
 \iftoggle{usemicrotype}                 % If 'microtype' is in use, turn off protrusion
   {\microtypesetup{protrusion=false}}%  %   for TOC
@@ -956,10 +987,10 @@
     {0em}%
   }
 
-\clearpage
-\pagestyle{ASUlot}
-\listoftables                           % List of Tables should appear in TOC, so use
-                                        %   unstarred version of \listoftables
+%% \clearpage
+%% \pagestyle{ASUlot}
+%% \listoftables                           % List of Tables should appear in TOC, so use
+%%                                         %   unstarred version of \listoftables
 \clearpage
 \pagestyle{ASUlof}
 \listoffigures                          % List of Figures should appear in TOC, so use
@@ -1004,19 +1035,12 @@
 % Body
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \mainmatter
-%\include{chapter1}                     %<Insert your chapters here; I recommend to use
-%\include{chapter2}                     %   \include rather than \input for chapters
-%\include{chapter3}% etc.
-                                        % Heading commands (in descending order):
-                                        % \chapter
-                                        % \section
-                                        % \subsection
-                                        % \subsubsection
-                                        % \paragraph
-                                        % \subparagraph
-\iftoggle{sample}{%
-  \include{sample_chapter}%
-}{}
+\include{introduction}
+\include{background}
+\include{theories}
+\include{conversations}
+\include{grammarless}
+\include{related}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Back matter
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1052,7 +1076,7 @@
   \bibliography{\bibfilename}
 }
 
-\appendix                               % Indicate start of appendices
+% \appendix                             % Indicate start of appendices
                                         % Appendices are considered 'mainmatter' in this
                                         %   documentclass
 \tolerance \defaulttolerance            % Set tolerance back to default
@@ -1073,7 +1097,7 @@
 
 \phantomsection                         % Need '\phantomsection' to place hyperref
                                         %   bookmark more accurately
-\addcontentsline{toc}{part}{Appendix}   %~Add "Appendix" to TOC here; comment out this
+%\addcontentsline{toc}{part}{Appendix}  %~Add "Appendix" to TOC here; comment out this
                                         %   line if you're not including appendices
 
 %\phantomsection                        %!This is the one part of the template that I
@@ -1094,9 +1118,6 @@
 %\include{appendix2}                     %   \include rather than \input for appendices.
 %\include{appendix3}% etc.               %   All heading commands are the same as above,
                                          %   e.g., \chapter, \section, etc.
-\iftoggle{sample}{%
-  \include{sample_appendix}%
-}{}
 
 \backmatter                             % Start back matter according to documentclass
 \makeatletter                           % Do not clear page after printing title for

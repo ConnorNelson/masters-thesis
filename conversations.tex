@@ -1,0 +1,180 @@
+\chapter{Conversations}
+
+Often times, distributed programs follow a conversation-like behavior, potentially following some underlying protocol.
+In such cases, program synthesis cannot merely take place over only simple input-output examples.
+Instead, input-output examples must be generalized to conversation examples.
+Here, discerning between input and output doesn't necessarily make sense, as it depends on an agent's perspective.
+Instead, a conversation takes place over a series of messages, where a message has some source agent and destination agent.
+Further, these agents have context--a generalization of input--representing what an agent individually brings as their input to a particular conversation.
+This allows for some notion of state.
+Nevertheless, in a deterministic program, identical contexts will produce identical conversations.
+
+\image{conversation.png}{Conversation}{0.5}
+
+\section{Capturing Theorists and Theories}
+
+An agent is not aware of other agents' contexts; only its own context and any received messages.
+This is a fundamental problem in reverse engineering distributed systems.
+Therefore, IRE must use an agent's received messages in order to recover the sender's context.
+It does so using $CaptureTheorist$s and $CaptureTheory$s.
+
+$CaptureTheorist$s wrap other theorists and effectively leverage their ability to parse.
+Those $CaptureTheorist$s go on to create $CaptureTheory$s, which also wrap those same theorists.
+During synthesis, the underlying theorists attempt to produce theories, and anything consumed during this is captured.
+This captured data may then be used in later theorists, much like a traditional input.
+Those produced theories do not actually become a part of the program space, but instead the $CaptureTheory$s storing the underlying theorist does.
+This allows this parsing done during the synthesis to be performed again during execution of the theory.
+
+\image{capture.png}{Capture Theorist and Capture Theory}{0.7}
+
+Consider the following HTTP theorists (Figure \ref{fig:http_theorist}) written using the IRE framework to understand how these $CaptureTheorist$s and $CaptureTheory$s may be applied.
+
+\begin{figure}[H]
+\begin{pythoncode}
+class HTTPRequest(ire.OutputMessageTheorist, entry='request'):
+    request = request_prolog + headers + '\n' + request_contents
+    request_prolog = '(GET|POST) ' + request_url + ' HTTP/1.1\n'
+    request_url = ire.RepeatTheorist(request_url_data)
+    request_url_data = '[^ ]' & inputs
+
+    headers = ire.RepeatTheorist(header)
+    header = '[a-zA-Z-]+: ' + ire.RepeatTheorist(header_data) + '\n'
+    header_data = '.' & inputs
+
+    request_contents = ire.RepeatTheorist(request_contents_data) | ''
+    request_contents_data = '.|\n' & inputs
+
+    inputs = ire.FunctionTheorist(None) & ire.FunctionTheorist(b64)
+
+
+class HTTPResponse(ire.InputMessageTheorist, entry='response'):
+    response = response_prolog + headers + '\n' + response_contents
+    response_prolog = 'HTTP/1.1 [0-9]+ [a-zA-Z ]+\n'
+
+    headers = ire.RepeatTheorist(cookie_header | header)
+    cookie_header = 'Set-Cookie: ' + cookie + '\n'
+    header = '[a-zA-Z-]+: ' + ire.RepeatTheorist(header_data) + '\n'
+    header_data = '.' & inputs
+
+    response_contents = HTML() | ''
+
+    cookie = ire.CaptureTheorist(cookie_data, 'cookie') ~$\label{cookie_theorist}$~
+    cookie_data = '[a-zA-Z]+=[a-zA-Z0-9]+'
+
+    inputs = ire.FunctionTheorist(None) & ire.FunctionTheorist(b64)
+
+
+http = HTTPRequest() & HTTPResponse()
+\end{pythoncode}
+\caption{HTTP Theorist}
+\label{fig:http_theorist}
+\end{figure}
+
+In the case of web applications, it is common for an HTTP server to negotiate some token, commonly known as a cookie, for keeping track of state with its clients \cite{barth2011rfc}.
+Cookies are a way of enabling statefulness in the otherwise stateless HTTP protocol.
+An HTTP client will include the cookies associated with a particular server with all web requests made to that server.
+By introducing a $CaptureTheorist$ on line \ref{cookie_theorist}, this behavior is effectively conveyed and enables IRE to capture the cookie.
+
+Now consider the following HTTP conversation (Figure \ref{fig:simple_http_conversation}) that results from the client's context of \mintinline{python}{username='Paul'}, \mintinline{python}{password='p455w0rd'}, and \mintinline{python}{msg='Hello_World'}; and unknown to the client, server's context of \mintinline{python}{cookie='sessionid=12345'}.
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+\begin{data}
+POST /login HTTP/1.1
+Host: example.com
+Content-Type: application/json
+\medskip
+\{"username": "Paul", "password": "p455w0rd"\}
+\end{data}
+
+\begin{data}
+HTTP/1.1 200 OK
+Set-Cookie: sessionid=12345
+Connection: close
+\medskip
+\end{data}
+
+\begin{data}
+GET /echo?msg=Hello\_World HTTP/1.1
+Host: example.com
+Cookie: sessionid=12345
+\medskip
+\end{data}
+
+\begin{data}
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Connection: close
+\medskip
+<html>
+    <head>
+        <title>Echo base64</title>
+    </head>
+    <body>
+        <p>Hello Paul!</p>
+        <p>"Hello\_World" is SGVsbG9fV29ybGQ=</p>
+    </body>
+</html>
+\end{data}
+\end{data}
+\caption{Simple HTTP Conversation}
+\label{fig:simple_http_conversation}
+\end{figure}
+
+Running this conversation example (Figure \ref{fig:simple_http_conversation}) through the prior HTTP theorist (Figure \ref{fig:http_theorist}) results in the following theory (Figure \ref{fig:simple_http_theory}), displayed as a simple program summary using the IRE framework.
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+\begin{data}
+\textcolor{gray}{\{}
+POST /login HTTP/1.1
+Host: example.com
+Content-Type: application/json
+\medskip
+\{"username": "\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[username]\}\}}\textcolor{gray}{, }\textcolor{blue}{Paul}\textcolor{gray}{\}}", "password": "\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[password]\}\}}\textcolor{gray}{, }\textcolor{blue}{p455w0rd}\textcolor{gray}{\}}"\}
+\textcolor{gray}{\}}
+\end{data}
+
+\begin{data}
+\textcolor{gray}{\{}
+HTTP/1.1 200 OK
+Set-Cookie: \textcolor{gray}{\{}\textcolor{blue}{\{\{Capture[cookie]\}\}}\textcolor{gray}{\}}
+Connection: close
+\medskip
+\textcolor{gray}{\}}
+\end{data}
+
+\begin{data}
+\textcolor{gray}{\{}
+GET /echo?msg=\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[msg]\}\}}\textcolor{gray}{, }\textcolor{blue}{Hello\_World}\textcolor{gray}{\}} HTTP/1.1
+Host: example.com
+Cookie: \textcolor{gray}{\{}\textcolor{blue}{\{\{Input[cookie]\}\}}\textcolor{gray}{, }\textcolor{blue}{sessionid=12345}\textcolor{gray}{\}}
+\medskip
+\textcolor{gray}{\}}
+\end{data}
+
+\begin{data}
+\textcolor{gray}{\{}
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=UTF-8
+Connection: close
+\medskip
+<html>
+    <head>
+        <title>Echo base64</title>
+    </head>
+    <body>
+        <p>Hello \textcolor{gray}{\{}\textcolor{blue}{\{\{Input[username]\}\}}\textcolor{gray}{, }\textcolor{blue}{Paul}\textcolor{gray}{\}}!</p>
+        <p>"\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[msg]\}\}}\textcolor{gray}{, }\textcolor{blue}{Hello\_World}\textcolor{gray}{\}}" is \textcolor{gray}{\{}\textcolor{blue}{\{\{b64(Input[username])\}\}}\textcolor{gray}{, }\textcolor{blue}{SGVsbG9fV29ybGQ=}\textcolor{gray}{\}}</p>
+    </body>
+</html>
+\textcolor{gray}{\}}
+\end{data}
+\end{data}
+\caption{Simple HTTP Theory}
+\label{fig:simple_http_theory}
+\end{figure}
+
+With another example conversation, this program space could be collapsed as discussed in Section \ref{sec:theory_intersection}.

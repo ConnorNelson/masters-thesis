@@ -1,0 +1,20 @@
+Reverse engineering is critical to reasoning about how a system behaves.
+While complete access to a system inherently allows for perfect analysis, partial access is inherently uncertain.
+This is the case for an individual agent in a distributed system.
+Inductive Reverse Engineering (IRE) enables analysis under such circumstances.
+
+IRE does this by producing program spaces consistent with individual input-output examples for a given domain-specific language.
+Then, IRE intersects those program spaces to produce a generalized program consistent with all examples.
+IRE, an easy to use framework, allows this domain-specific language to be specified in the form of $Theorist$s, which produce $Theory$s, a succinct way of representing the program space.
+
+Programs are often much more complex than simple string transformations.
+One of the ways in which they are more complex is in the way that they follow a conversation-like behavior, potentially following some underlying protocol.
+As a result, IRE represents program interactions as $Conversation$s in order to more correctly model a distributed system.
+This, for instance, enables IRE to model dynamically captured inputs received from other agents in the distributed system.
+
+While domain-specific knowledge provided by a user is extremely valuable, such information is not always possible.
+IRE mitigates this by automatically inferring program grammars, allowing it to still perform efficient searches of the program space.
+It does this by intersecting conversations prior to synthesis in order to understand what portions of conversations are constant.
+
+IRE exists to be a tool that can aid in automatic reverse engineering across numerous domains.
+Further, IRE aspires to be a centralized location and interface for implementing program synthesis and automatic black box analysis techniques.

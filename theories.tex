@@ -1,0 +1,208 @@
+\chapter{Theorists and Theories}
+
+IRE works around two central primitives: theorists and theories.
+Theorists use input-output examples to produce theories.
+They act as a sort of domain-specific language.
+Theories use input to produce output.
+They model the synthesized program.
+
+\image{theorist.png}{Theorist}{0.7}
+
+\image{theory.png}{Theory}{0.7}
+
+\section{Grammar Theorists}
+
+IRE fundamentally solves a parsing problem.
+It must parse input-output examples to produce a program, not entirely dissimilar to a programming language parser which parses source code to produce a program.
+For this reason, it is useful to think in terms of context-free grammars.
+While in the programming language realm context-free grammars strive to be unambiguous, IRE leverages ambiguity to produce the program space.
+Consider, for instance, the following HTML grammar theorist (Figure \ref{fig:html_grammar}) written using the IRE framework.
+
+\begin{figure}[H]
+\begin{pythoncode}
+import ire
+
+class HTML(ire.GrammarTheorist, entry='html'):
+    html = ire.RepeatTheorist(html_element) ~$\label{html_theorist}$~
+    html_element = (open_tag & close_tag & self_tag) | data ~$\label{html_element_theorist}$~
+
+    open_tag = '<' + tag_content + '>'
+    close_tag = '</' + tag_name + '>'
+    self_tag = '<' + tag_content + '/>'
+
+    data = '.|\n' & ire.FunctionTheorist(None) & ire.FunctionTheorist(b64) ~$\label{data_theorist}$~
+
+    tag_content = (tag_name + whitespace + attributes) | tag_name
+    tag_name = '[a-zA-Z]+'
+
+    attributes = (attribute + whitespace + attributes) | attribute
+    attribute = '[a-zA-Z]+' & ('[a-zA-Z]+="' + attribute_value + '"')
+    attribute_value = '[a-zA-Z0-9]'
+
+    whitespace = '\s+'
+\end{pythoncode}
+\caption{HTML Grammar Theorist}
+\label{fig:html_grammar}
+\end{figure}
+
+Here, a $GrammarTheorist$ is defined, with $html$ being the entry point, or start symbol in context-free grammar terminology.
+Variables that appear on the left side of an $=$ indicate a nonterminal symbol, while all other expressions are terminal symbols.
+Each of these assignments forms the basis for a production rule.
+
+Strings are implicitly $RegexTheorist$s, which as the name suggests, perform regex matching.
+Addition expressions (using the $+$ operator) are implicitly $ConcatTheorist$s, which serve to concatenate theorists, and their produced theories, together.
+
+Rather than defining several production rules for the same nonterminal, operators $\&$ and $|$ both respectively serve to implicitly create $AndTheorist$s and $OrTheorist$s.
+All theorists within an $AndTheorist$ will attempt to produce theories.
+After some theorist within an $OrTheorist$ has produced some number of theories, any remaining theorists will not be given a chance to produce theories.
+This evaluation takes place from left to right and allows for a conditionally restricted search space, and consequently more efficient parsing.
+On line \ref{html_element_theorist}, the $OrTheorist$ indicates that an $html\_element$ can be an $open\_tag$, $close\_tag$ and $self\_tag$, or if that is not the case then it must be $data$.
+
+On line \ref{html_theorist}, the $RepeatTheorist$ indicates that parsing should repeatedly consume (one or more times) $html\_element$s until it no longer can.
+Implementation wise, this is more efficient than how looping is traditionally performed in context-free grammars by having a self-referential production rule.
+
+$FunctionTheorist$s wrap functions to make them behave as theorists.
+Line \ref{data_theorist} showcases two of these theorists.
+$FunctionTheorist(None)$ indicates the identity function ($f(x)=x$).
+$FunctionTheorist(b64)$ on the other hand assumes the existence of a $b64$ function (defined elsewhere), which base64 encodes its input.
+
+
+\section{Theorists to Theories}
+
+Consider the following simple HTML echo program (Figure \ref{fig:simple_html_echo_program}) in order to understand how IRE is able to utilize the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) to reason about this program and produce theories.
+
+\begin{figure}[H]
+\begin{pythoncode}
+def echo(name, msg):
+    return \
+f"""
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello {name}!</p>
+        <p>"{msg}" is {b64(msg)}</p>
+    </body>
+</html>
+"""
+\end{pythoncode}
+\caption{Simple HTML Echo Program}
+\label{fig:simple_html_echo_program}
+\end{figure}
+
+This simple program (Figure \ref{fig:simple_html_echo_program}) transforms the inputs into an HTML output.
+Inputs \mintinline{python}{name='Paul'} and \mintinline{python}{msg='Hello World'} result in the following output (Figure \ref{fig:output_of_simple_html_echo_program}).
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello Paul!</p>
+        <p>"Hello World" is SGVsbG8gV29ybGQ=</p>
+    </body>
+</html>
+\end{data}
+\caption{Output of Simple HTML Echo Program}
+\label{fig:output_of_simple_html_echo_program}
+\end{figure}
+
+Running this input-output example (Figure \ref{fig:output_of_simple_html_echo_program}) through the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) results in the following theory (Figure \ref{fig:simple_html_echo_theory}), displayed as a simple program summary using the IRE framework.
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+\textcolor{gray}{\{}
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello \textcolor{gray}{\{}\textcolor{blue}{\{\{Input[0]\}\}}\textcolor{gray}{, }\textcolor{blue}{Paul}\textcolor{gray}{\}}!</p>
+        <p>"\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[1]\}\}}\textcolor{gray}{, }\textcolor{blue}{Hello World}\textcolor{gray}{\}}" is \textcolor{gray}{\{}\textcolor{blue}{\{\{b64(Input[1])\}\}}\textcolor{gray}{, }\textcolor{blue}{SGVsbG8gV29ybGQ=}\textcolor{gray}{\}}</p>
+    </body>
+</html>
+\textcolor{gray}{\}}
+\end{data}
+\caption{Simple HTML Echo Theory}
+\label{fig:simple_html_echo_theory}
+\end{figure}
+
+In this simple program summary (Figure \ref{fig:simple_html_echo_theory}), the gray curly braces and commas represent $UnionTheory$s, and the blue text represents individual theories within those $UnionTheory$s.
+$UnionTheory$s are a way of succinctly representing the program space, allowing common theories among candidate program traces to not be repeated, effectively forming a directed acyclic graph.
+Double curly braces indicate theories that depend on the input (e.g. $FunctionTheory$s).
+
+This shows an interesting result common to running a theorist against only one input-output example: the complete original constant output by itself appears as a possible program trace within the program space.
+These constant theories can be ruled out only with more input-output examples.
+
+\section{Theory Intersection}
+\label{sec:theory_intersection}
+
+In order to collapse the program space, theories resulting from different input-output examples must be intersected together.
+
+\image{intersection.png}{Theory Intersection}{0.7}
+
+Inputs \mintinline{python}{name='Pablo'} and \mintinline{python}{msg='Hola Mundo'} result in the following output (Figure \ref{fig:another_output_of_simple_html_echo_program}).
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello Pablo!</p>
+        <p>"Hola Mundo" is SG9sYSBNdW5kbw==</p>
+    </body>
+</html>
+\end{data}
+\caption{Another Output of Simple HTML Echo Program}
+\label{fig:another_output_of_simple_html_echo_program}
+\end{figure}
+
+Running this input-output example (Figure \ref{fig:another_output_of_simple_html_echo_program}) through the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) results in the following theory (Figure \ref{fig:another_simple_html_echo_theory}), displayed as a simple program summary using the IRE framework.
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+\textcolor{gray}{\{}
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello \textcolor{gray}{\{}\textcolor{blue}{\{\{Input[0]\}\}}\textcolor{gray}{, }\textcolor{blue}{Pablo}\textcolor{gray}{\}}!</p>
+        <p>"\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[1]\}\}}\textcolor{gray}{, }\textcolor{blue}{Hola Mundo}\textcolor{gray}{\}}" is \textcolor{gray}{\{}\textcolor{blue}{\{\{b64(Input[1])\}\}}\textcolor{gray}{, }\textcolor{blue}{SG9sYSBNdW5kbw==}\textcolor{gray}{\}}</p>
+    </body>
+</html>
+\textcolor{gray}{\}}
+\end{data}
+\caption{Another Simple HTML Echo Theory}
+\label{fig:another_simple_html_echo_theory}
+\end{figure}
+
+Intersecting the first theory (Figure \ref{fig:simple_html_echo_theory}) with the second theory (Figure \ref{fig:another_simple_html_echo_theory}), results in just one program trace in the program space: our original program (Figure \ref{fig:simple_html_echo_program}).
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+\textcolor{gray}{\{}
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello \textcolor{gray}{\{}\textcolor{blue}{\{\{Input[0]\}\}}\textcolor{gray}{\}}!</p>
+        <p>"\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[1]\}\}}\textcolor{gray}{\}}" is \textcolor{gray}{\{}\textcolor{blue}{\{\{b64(Input[1])\}\}}\textcolor{gray}{\}}</p>
+    </body>
+</html>
+\textcolor{gray}{\}}
+\end{data}
+\caption{Simple HTML Echo Theory Intersected}
+\label{fig:simple_html_echo_theory_intersected}
+\end{figure}

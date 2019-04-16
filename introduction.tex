@@ -1,0 +1,32 @@
+\chapter{Introduction}
+
+Reverse engineering is a methodology for precisely analyzing the internal workings and substructure of a process or system in order to better understand how it works.
+In practice, it is done in the absence of high-level specifications and can be thought of as working backward through the standard engineering process---design towards implementation---and instead, implementation towards design.
+In theory, reverse engineering is relatively straightforward: simply observe how the internals are operating and how the subcomponents are connected.
+Of course, it is more nuanced than this; but even so, a complete working system that can be observed is, by its very nature, perfectly descriptive of what it does and how it works.
+This is an underlying requirement of standard reverse engineering.
+In hardware, a physical object is disassembled and examined.
+In software, its source code is read through, or in its absence, binary disassembled and machine code analyzed.
+
+Consider, however, the task of reverse engineering without complete access to observing the system.
+This is the case in distributed systems, where some agent has only partial access to the overall system.
+Take for instance web applications, where a client makes a request to a server and is only made aware of its response.
+From the client's perspective, the server is merely a black-box---an oracle---that takes some input and returns some output.
+What happens in between is left unknown to the client.
+In such cases, reverse engineering becomes inherently uncertain.
+
+Further consider the problem of systems in which interactions take place between persons and computers; for instance, a human interacting with some computer program in a repetitive way.
+This constitutes a distributed system, where part of the program takes place in the computer, but also part of it takes place in the person's intentions towards interacting with the computer.
+In such cases, the program occurring in the person's intentions---in the person's mind---is but a black-box to the computer.
+It is in this way that reverse engineering may be applied not only towards analyzing a computer, but also a person.
+Reverse engineering may be useful here in order to profile or improve upon the user experience of the person.
+
+Although reverse engineering in these situations becomes an inherently uncertain process, this does not stop human-efforts in reverse engineering.
+In practice, humans build up an entire model of the black-box system under analysis.
+They make assumptions based on past systems, attempt to rule out and confirm these assumptions, and use intuition as a means of guiding this process.
+This inductive reasoning forms the basis for inductive reverse engineering: IRE.
+
+IRE serves to solve this problem of reverse engineering in a black-box environment.
+IRE is an easy to use, open source, Python 3 framework, that enables users to transform input-output examples into executable programs consistent with those examples.
+This effectively allows for programming by example.
+Users can easily introduce domain-specific knowledge about the problem they are working on to further enhance this process.

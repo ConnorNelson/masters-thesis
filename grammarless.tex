@@ -1,0 +1,110 @@
+\chapter{Grammarless Synthesis}
+
+While it is useful to be able to provide domain-specific knowledge to an analysis, doing so is not always possible.
+Providing a grammar to IRE allows it to be more efficient in its search, by reducing the possible program space.
+Consider, for instance, the following grammar (Figure \ref{fig:generic_theorist}) which is highly generic.
+
+\begin{figure}[H]
+\begin{pythoncode}
+class Generic(ire.GrammarTheorist, entry='entry'):
+    entry = ire.RepeatTheorist(data)
+    data = '.|\n' & ire.FunctionTheorist(None) & ire.FunctionTheorist(b64)
+\end{pythoncode}
+\caption{Generic Theorist}
+\label{fig:generic_theorist}
+\end{figure}
+
+This grammar (Figure \ref{fig:generic_theorist}) repeatedly matches against a single byte and derivations of the input.
+Repeatedly matching against a single byte is what effectively drives the parsing forward.
+
+Inputs \mintinline{python}{name='Paul'} and \mintinline{python}{msg='body'} run against the prior simple program (Figure \ref{fig:simple_html_echo_program}) and through the generic theorist (Figure \ref{fig:generic_theorist}) result in the following theory (Figure \ref{fig:generic_theory}), displayed as a simple program summary using the IRE framework.
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+\textcolor{gray}{\{}
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[1]\}\}}\textcolor{gray}{, }\textcolor{blue}{body}\textcolor{gray}{\}}>
+        <p>Hello \textcolor{gray}{\{}\textcolor{blue}{\{\{Input[0]\}\}}\textcolor{gray}{, }\textcolor{blue}{Paul}\textcolor{gray}{\}}!</p>
+        <p>"\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[1]\}\}}\textcolor{gray}{, }\textcolor{blue}{body}\textcolor{gray}{\}}" is \textcolor{gray}{\{}\textcolor{blue}{\{\{b64(Input[1])\}\}}\textcolor{gray}{, }\textcolor{blue}{Ym9keQ==}\textcolor{gray}{\}}</p>
+    </\textcolor{gray}{\{}\textcolor{blue}{\{\{Input[1]\}\}}\textcolor{gray}{, }\textcolor{blue}{body}\textcolor{gray}{\}}>
+</html>
+\textcolor{gray}{\}}
+\end{data}
+\caption{Generic Theory}
+\label{fig:generic_theory}
+\end{figure}
+
+Note that in this case, the HTML body tags are considered to have been potentially derived from the input.
+Of course, with another input-output example, this program space could be collapsed to resolve this as discussed in Section \ref{sec:theory_intersection}.
+Nevertheless, it is useful for demonstrating how much extra work must be needlessly done in the absence of domain-specific knowledge about the HTML structure of this program's output.
+
+\section{Conversation Intersection}
+
+The prior structure of the generic theorist (Figure \ref{fig:generic_theorist}) does not scale very well with message sizes and the number of core theorists (e.g. $FunctionTheorist$s).
+Consider for instance a message of 100,000 bytes, with hundreds of potential $FunctionTheorist$s and $CaptureTheorist$s defined to allow for all sorts of context derivations.
+This would likely be the case in applying IRE to real world web applications, where HTML pages get quite large, and context derivations quite complex.
+Under such circumstances, applying this sort of generic theorist would become infeasible.
+
+Fortunately, IRE can do much better by analyzing multiple conversations at once, prior to producing their theories and intersecting them.
+With this early access, IRE can perform a sort of conversation intersection before it begins its traditional analysis.
+In doing so, IRE analyzes the supplied conversations to determine their structure.
+In particular, it looks for portions of messages which remain constant throughout all of the conversations.
+IRE uses the insight that if portions of a message don't change across any conversation examples, then it must be the case that a consistent program trace keeps it constant.
+Boldly, IRE assumes that it must be constant.
+
+Effectively, IRE automatically generates a grammar, where constant sections are parsed by constant theorists, and nonconstant sections are parsed by all supplied core theorists.
+This can dramatically decrease the program search space.
+However, IRE must first determine which sections of messages are constant, and which aren't.
+
+This is done by taking all corresponding messages across all conversations, and finding the longest common substring across them.
+The longest common substring is marked as being constant in the grammar, and this is recursively applied to all the prefixes and all the suffixes.
+This continues on until there no longer is a common substring.
+This ultimately results in marking the maximum amount of constant data across all conversations.
+
+Observe what happens (Figure \ref{fig:conversation_intersection}) when the output from input \mintinline{python}{name='Paul'} and \mintinline{python}{msg='Hello'} and output from input \mintinline{python}{name='Pablo'} and \mintinline{python}{msg='Hola'} run against the prior simple program (Figure \ref{fig:simple_html_echo_program}) are intersected.
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello Pa\summaryii{u}{b} l\summaryii{}{o}!</p>
+        <p>"H\summaryii{ell}{} o\summaryii{}{la} " is SG\summaryii{V}{9} s\summaryii{bG8}{VQ=} =</p>
+    </body>
+</html>
+\end{data}
+\caption{Conversation Intersection}
+\label{fig:conversation_intersection}
+\end{figure}
+
+This shows an interesting result common to intersecting only a few examples: too much of the conversation is marked constant.
+This can potentially cause problems with inputs being fragmented, though this is not necessarily a major issue.
+Fortunately, though, with more examples this problem is resolved.
+The following figure (Figure \ref{fig:another_conversation_intersection}) shows the result of introducing another output due to input \mintinline{python}{name='Joe'} and \mintinline{python}{msg='ABC'}.
+
+\begin{figure}[H]
+\begin{data}
+\let =\enskip
+<html>
+    <head>
+        <title>Echo</title>
+    </head>
+    <body>
+        <p>Hello \summaryiii{Paul}{Pablo}{Joe}!</p>
+        <p>"\summaryiii{Hello}{Hola}{ABC}" is \summaryiii{SGVsbG8=}{SG9sYQ==}{QUJD}</p>
+    </body>
+</html>
+\end{data}
+\caption{Another Conversation Intersection}
+\label{fig:another_conversation_intersection}
+\end{figure}
+
+This discovered structure (Figure \ref{fig:another_conversation_intersection}), in turn, is used by IRE for automatically generating a grammar.
+This dramatically reduces the possible program space, enabling IRE to be much more efficient.

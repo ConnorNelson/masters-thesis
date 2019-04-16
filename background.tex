@@ -1,0 +1,16 @@
+\chapter{Background}
+
+This sort of reverse engineering without access to internals has become a massively important skill, and in particular, critical to cybersecurity.
+Take for instance phone phreaking, where early hackers mapped out the phone network and how it worked simply by interacting with it using various tones and observing the results \cite{mitnick2011art}.
+In more recent times, penetration testing has become an important profession that often relies on reverse engineering in order to audit the security of companies from the perspective of an outside attacker.
+
+One of the common tasks of a penetration tester is in utilizing tools such as black-box web vulnerability scanners.
+These scanners naively scan a web application, blindly sending exploits at input points and trying to detect if they worked.
+A survey of these tools shows that there is much work to be done in improving them \cite{doupe2010johnny}.
+Furthermore, efforts to provide more semantic information about an application's state has proven to be effective, despite still fundamentally only having black-box access \cite{doupe2012enemy}.
+
+In response to the demand for reverse engineering, recent efforts have been made to push towards Cyber Reasoning Systems which aid in this effort, and in some cases entirely automate it.
+The Defense Advanced Research Projects Agency (DARPA) led an initiative to develop fully autonomous systems capable of reverse engineering and exploiting challenge binaries in their Cyber Grand Challenge \cite{shellphish2017cyber}.
+This has led to significant advances in program analysis and various techniques surrounding state-of-the-art reverse engineering.
+Many of these techniques can be seen in open source frameworks for performing program analysis including \textit{angr} and \textit{Manticore} \cite{shoshitaishvili2016state, stephens2016driller, shoshitaishvili2015firmalice}.
+These frameworks provide users with tools for precisely reasoning about a program by analyzing their internals.
