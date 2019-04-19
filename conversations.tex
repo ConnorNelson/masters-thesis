@@ -27,9 +27,9 @@ This allows this parsing done during the synthesis to be performed again during 
 
 \image{capture.png}{Capture Theorist and Capture Theory}{0.7}
 
-Consider the following HTTP theorists (Figure \ref{fig:http_theorist}) written using the IRE framework to understand how these $CaptureTheorist$s and $CaptureTheory$s may be applied.
+Consider the HTTP theorists shown in Figure \ref{fig:http_theorist}, written using the IRE framework, in order to understand how these $CaptureTheorist$s and $CaptureTheory$s may be applied.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{pythoncode}
 class HTTPRequest(ire.OutputMessageTheorist, entry='request'):
     request = request_prolog + headers + '\n' + request_contents
@@ -75,9 +75,9 @@ Cookies are a way of enabling statefulness in the otherwise stateless HTTP proto
 An HTTP client will include the cookies associated with a particular server with all web requests made to that server.
 By introducing a $CaptureTheorist$ on line \ref{cookie_theorist}, this behavior is effectively conveyed and enables IRE to capture the cookie.
 
-Now consider the following HTTP conversation (Figure \ref{fig:simple_http_conversation}) that results from the client's context of \mintinline{python}{username='Paul'}, \mintinline{python}{password='p455w0rd'}, and \mintinline{python}{msg='Hello_World'}; and unknown to the client, server's context of \mintinline{python}{cookie='sessionid=12345'}.
+Now consider the HTTP conversation (Figure \ref{fig:simple_http_conversation}) that results from the client's context of \mintinline{python}{username='Paul'}, \mintinline{python}{password='p455w0rd'}, and \mintinline{python}{msg='Hello_World'}; and unknown to the client, server's context of \mintinline{python}{cookie='sessionid=12345'}.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 \begin{data}
@@ -122,9 +122,9 @@ Connection: close
 \label{fig:simple_http_conversation}
 \end{figure}
 
-Running this conversation example (Figure \ref{fig:simple_http_conversation}) through the prior HTTP theorist (Figure \ref{fig:http_theorist}) results in the following theory (Figure \ref{fig:simple_http_theory}), displayed as a simple program summary using the IRE framework.
+Running this conversation example (Figure \ref{fig:simple_http_conversation}) through the prior HTTP theorist (Figure \ref{fig:http_theorist}) results in the theory shown in Figure \ref{fig:simple_http_theory}, displayed as a simple program summary using the IRE framework.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 \begin{data}

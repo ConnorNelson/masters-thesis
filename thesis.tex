@@ -52,7 +52,7 @@
 \graphicspath{ {./images/} }
 
 \newcommand*{\image}[3]{
-  \begin{figure}[H]
+  \begin{figure}[tb]
     \begin{center}
       \includegraphics[width=0.7\maxwidth{\textwidth}]{#1}
       \caption{#2}
@@ -779,12 +779,12 @@
   {\DoubleSpacing}
 
 %%% Figures %%%
-\setfloatadjustment{figure}%            % Left justify material inside figure floats
-  {\raggedright}
-\BeforeBeginEnvironment{figure}%        % Single space inside figure environment
-  {\SingleSpacing}
-\AfterEndEnvironment{figure}
-  {\DoubleSpacing}
+%% \setfloatadjustment{figure}%            % Left justify material inside figure floats
+%%   {\raggedright}
+%% \BeforeBeginEnvironment{figure}%        % Single space inside figure environment
+%%   {\SingleSpacing}
+%% \AfterEndEnvironment{figure}
+%%   {\DoubleSpacing}
 
 \makeatletter                           % Define custom macro called '\maxwidth{}' that
   \def\maxwidth#1{%                     %   allows you to specify the maximum width of an

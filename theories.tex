@@ -16,9 +16,9 @@ IRE fundamentally solves a parsing problem.
 It must parse input-output examples to produce a program, not entirely dissimilar to a programming language parser which parses source code to produce a program.
 For this reason, it is useful to think in terms of context-free grammars.
 While in the programming language realm context-free grammars strive to be unambiguous, IRE leverages ambiguity to produce the program space.
-Consider, for instance, the following HTML grammar theorist (Figure \ref{fig:html_grammar}) written using the IRE framework.
+Consider, for instance, the HTML grammar theorist (Figure \ref{fig:html_grammar}) written using the IRE framework.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{pythoncode}
 import ire
 
@@ -69,9 +69,9 @@ $FunctionTheorist(b64)$ on the other hand assumes the existence of a $b64$ funct
 
 \section{Theorists to Theories}
 
-Consider the following simple HTML echo program (Figure \ref{fig:simple_html_echo_program}) in order to understand how IRE is able to utilize the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) to reason about this program and produce theories.
+Consider the simple HTML echo program (Figure \ref{fig:simple_html_echo_program}) in order to understand how IRE is able to utilize the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) to reason about this program and produce theories.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{pythoncode}
 def echo(name, msg):
     return \
@@ -92,9 +92,9 @@ f"""
 \end{figure}
 
 This simple program (Figure \ref{fig:simple_html_echo_program}) transforms the inputs into an HTML output.
-Inputs \mintinline{python}{name='Paul'} and \mintinline{python}{msg='Hello World'} result in the following output (Figure \ref{fig:output_of_simple_html_echo_program}).
+Inputs \mintinline{python}{name='Paul'} and \mintinline{python}{msg='Hello World'} result in the output shown in Figure \ref{fig:output_of_simple_html_echo_program}.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 <html>
@@ -111,9 +111,9 @@ Inputs \mintinline{python}{name='Paul'} and \mintinline{python}{msg='Hello World
 \label{fig:output_of_simple_html_echo_program}
 \end{figure}
 
-Running this input-output example (Figure \ref{fig:output_of_simple_html_echo_program}) through the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) results in the following theory (Figure \ref{fig:simple_html_echo_theory}), displayed as a simple program summary using the IRE framework.
+Running this input-output example (Figure \ref{fig:output_of_simple_html_echo_program}) through the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) results in the theory shown in Figure \ref{fig:simple_html_echo_theory}, displayed as a simple program summary using the IRE framework.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 \textcolor{gray}{\{}
@@ -146,9 +146,9 @@ In order to collapse the program space, theories resulting from different input-
 
 \image{intersection.png}{Theory Intersection}{0.7}
 
-Inputs \mintinline{python}{name='Pablo'} and \mintinline{python}{msg='Hola Mundo'} result in the following output (Figure \ref{fig:another_output_of_simple_html_echo_program}).
+Inputs \mintinline{python}{name='Pablo'} and \mintinline{python}{msg='Hola Mundo'} result in the output shown in Figure \ref{fig:another_output_of_simple_html_echo_program}.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 <html>
@@ -165,9 +165,9 @@ Inputs \mintinline{python}{name='Pablo'} and \mintinline{python}{msg='Hola Mundo
 \label{fig:another_output_of_simple_html_echo_program}
 \end{figure}
 
-Running this input-output example (Figure \ref{fig:another_output_of_simple_html_echo_program}) through the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) results in the following theory (Figure \ref{fig:another_simple_html_echo_theory}), displayed as a simple program summary using the IRE framework.
+Running this input-output example (Figure \ref{fig:another_output_of_simple_html_echo_program}) through the prior HTML grammar theorist (Figure \ref{fig:html_grammar}) results in the theory shown in Figure \ref{fig:another_simple_html_echo_theory}, displayed as a simple program summary using the IRE framework.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 \textcolor{gray}{\{}
@@ -188,7 +188,7 @@ Running this input-output example (Figure \ref{fig:another_output_of_simple_html
 
 Intersecting the first theory (Figure \ref{fig:simple_html_echo_theory}) with the second theory (Figure \ref{fig:another_simple_html_echo_theory}), results in just one program trace in the program space: our original program (Figure \ref{fig:simple_html_echo_program}).
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 \textcolor{gray}{\{}

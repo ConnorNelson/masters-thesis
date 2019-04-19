@@ -2,9 +2,9 @@
 
 While it is useful to be able to provide domain-specific knowledge to an analysis, doing so is not always possible.
 Providing a grammar to IRE allows it to be more efficient in its search, by reducing the possible program space.
-Consider, for instance, the following grammar (Figure \ref{fig:generic_theorist}) which is highly generic.
+Consider, for instance, the grammar shown in Figure \ref{fig:generic_theorist} which is highly generic.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{pythoncode}
 class Generic(ire.GrammarTheorist, entry='entry'):
     entry = ire.RepeatTheorist(data)
@@ -17,9 +17,9 @@ class Generic(ire.GrammarTheorist, entry='entry'):
 This grammar (Figure \ref{fig:generic_theorist}) repeatedly matches against a single byte and derivations of the input.
 Repeatedly matching against a single byte is what effectively drives the parsing forward.
 
-Inputs \mintinline{python}{name='Paul'} and \mintinline{python}{msg='body'} run against the prior simple program (Figure \ref{fig:simple_html_echo_program}) and through the generic theorist (Figure \ref{fig:generic_theorist}) result in the following theory (Figure \ref{fig:generic_theory}), displayed as a simple program summary using the IRE framework.
+Inputs \mintinline{python}{name='Paul'} and \mintinline{python}{msg='body'} run against the prior simple program (Figure \ref{fig:simple_html_echo_program}) and through the generic theorist (Figure \ref{fig:generic_theorist}) result in the theory shown in Figure \ref{fig:generic_theory}, displayed as a simple program summary using the IRE framework.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 \textcolor{gray}{\{}
@@ -67,7 +67,7 @@ This ultimately results in marking the maximum amount of constant data across al
 
 Observe what happens (Figure \ref{fig:conversation_intersection}) when the output from input \mintinline{python}{name='Paul'} and \mintinline{python}{msg='Hello'} and output from input \mintinline{python}{name='Pablo'} and \mintinline{python}{msg='Hola'} run against the prior simple program (Figure \ref{fig:simple_html_echo_program}) are intersected.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 <html>
@@ -87,9 +87,9 @@ Observe what happens (Figure \ref{fig:conversation_intersection}) when the outpu
 This shows an interesting result common to intersecting only a few examples: too much of the conversation is marked constant.
 This can potentially cause problems with inputs being fragmented, though this is not necessarily a major issue.
 Fortunately, though, with more examples this problem is resolved.
-The following figure (Figure \ref{fig:another_conversation_intersection}) shows the result of introducing another output due to input \mintinline{python}{name='Joe'} and \mintinline{python}{msg='ABC'}.
+Figure \ref{fig:another_conversation_intersection} shows the result of introducing another output due to input \mintinline{python}{name='Joe'} and \mintinline{python}{msg='ABC'}.
 
-\begin{figure}[H]
+\begin{figure}[tb]
 \begin{data}
 \let =\enskip
 <html>
